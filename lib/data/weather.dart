@@ -1,5 +1,5 @@
 class Weather {
-  String? data;
+  String? date;
   int? time;
   int? pop;
   int? pty;
@@ -9,11 +9,11 @@ class Weather {
   int? tmp;
   int? reh;
 
-  Weather({this.data, this.time, this.pop, this.pty, this.pcp, this.sky, this.wsd, this.tmp, this.reh});
+  Weather({this.date, this.time, this.pop, this.pty, this.pcp, this.sky, this.wsd, this.tmp, this.reh});
 
   factory Weather.fromJson(Map<String, dynamic> data) {
     return Weather(
-      data: data['fcstData'] ?? '',
+      date: data['fcstDate'] ?? '',
       time: int.tryParse(data['fcstTime'] ?? '') ?? 0,
       pop: int.tryParse(data['POP'] ?? '') ?? 0,
       pty: int.tryParse(data['PTY'] ?? '') ?? 0,

@@ -1,3 +1,5 @@
+import 'package:fashion_outfit/data/api.dart';
+import 'package:fashion_outfit/data/weather.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -31,9 +33,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(''),
-      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -42,7 +41,15 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () async {
+          final api = WeatherApi();
+          List<Weather> weather = await api.getWeather(1, 1, 20220114, '2300');
+          for(final w in weather) {
+            print(w.date);
+            print(w.time);
+            print(w.tmp);
+          }
+        },
         child: const Icon(Icons.add),
       ),
     );

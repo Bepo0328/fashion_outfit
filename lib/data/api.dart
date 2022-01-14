@@ -12,7 +12,7 @@ class WeatherApi {
     Uri url = Uri.parse('$BASE_URL/1360000/VilageFcstInfoService_2.0/getVilageFcst?'
         'serviceKey=$key&'
         'pageNo=1&'
-        'numOfRows=100&'
+        'numOfRows=130&'
         'dataType=JSON&'
         'base_date=$data&'
         'base_time=$baseTime&'

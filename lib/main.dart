@@ -1,5 +1,6 @@
 import 'package:fashion_outfit/data/api.dart';
 import 'package:fashion_outfit/data/weather.dart';
+import 'package:fashion_outfit/utils.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -36,6 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
     'assets/img/pants.png',
   ];
   List<Weather> weather = [];
+  Weather? current;
   List<String> sky = [
     'assets/img/sky1.png',
     'assets/img/sky2.png',
@@ -56,146 +58,199 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
   int level = 0;
 
+  void getWeather() async {
+    final api = WeatherApi();
+    weather = await api.getWeather(1, 1, 20220114, '0200');
+
+    final now = DateTime.now();
+    int time = int.parse('${now.hour}00');
+
+    weather.removeWhere((w) => int.parse(w.time!) < time);
+    current = weather.first;
+    level = getLevel(current!);
+
+    setState(() {});
+  }
+
+  int getLevel(Weather w) {
+    if(w.sky! > 8) {
+      return 3;
+    } else if(w.sky! > 5) {
+      return 2;
+    } else if(w.sky! > 2) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getWeather();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: colors[level],
-      body: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 65.0),
-            const Text(
-              '종로구',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Container(
-              width: 100,
-              height: 100,
-              margin: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 20.0,
-              ),
-              child: Image.asset(sky[level]),
-              alignment: Alignment.centerRight,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                const Text(
-                  '26°C',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 50.0,
+      body: weather.isEmpty
+          ? Container(
+              child: Text('날씨정보를 불러오고 있어요'),
+            )
+          : Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 65.0),
+                  const Text(
+                    '종로구',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Column(
-                  children: [
-                    const Text(
-                      '1월 14일',
+                  Container(
+                    width: 100,
+                    height: 100,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 20.0,
+                    ),
+                    child: Image.asset(sky[level]),
+                    alignment: Alignment.centerRight,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Row(
+                        textBaseline: TextBaseline.alphabetic,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        children: [
+                          Text(
+                            '${current!.tmp}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 60.0,
+                            ),
+                          ),
+                          const Text(
+                            '°C',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${Utils.stringToDateTime(current!.date!).month}월 '
+                            '${Utils.stringToDateTime(current!.date!).day}일',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.0,
+                            ),
+                          ),
+                          Text(
+                            status[level],
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30.0),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: const Text(
+                      '오늘 어울리는 복장을 추천해 드려요',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14.0,
                       ),
                     ),
-                    Text(
-                      status[level],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14.0,
+                  ),
+                  const SizedBox(height: 30.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: List.generate(clothes.length, (idx) {
+                      return Container(
+                        padding: const EdgeInsets.all(8.0),
+                        width: 100.0,
+                        height: 100.0,
+                        child: Image.asset(
+                          clothes[idx],
+                          fit: BoxFit.contain,
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 30.0),
+                  Expanded(
+                    child: Container(
+                      height: 150.0,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: List.generate(weather.length, (idx) {
+
+                          final w = weather[idx];
+                          int _level = getLevel(w);
+
+                          return Container(
+                            margin:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                 Text(
+                                  '${w.tmp}°C',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12.0,
+                                  ),
+                                ),
+                                Text(
+                                  '${w.pop}%',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12.0,
+                                  ),
+                                ),
+                                Container(
+                                  width: 50.0,
+                                  height: 50.0,
+                                  child: Image.asset(sky[_level]),
+                                  alignment: Alignment.centerRight,
+                                ),
+                                Text(
+                                  '${w.time}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 30.0),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: const Text(
-                '오늘 어울리는 복장을 추천해 드려요',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14.0,
-                ),
-              ),
-            ),
-            const SizedBox(height: 30.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(clothes.length, (idx) {
-                return Container(
-                  padding: const EdgeInsets.all(8.0),
-                  width: 100.0,
-                  height: 100.0,
-                  child: Image.asset(
-                    clothes[idx],
-                    fit: BoxFit.contain,
                   ),
-                );
-              }),
-            ),
-            const SizedBox(height: 30.0),
-            Container(
-              height: 150.0,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: List.generate(10, (idx) {
-                  return Container(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          '온도',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.0,
-                          ),
-                        ),
-                        const Text(
-                          '강수 확률',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.0,
-                          ),
-                        ),
-                        Container(
-                          width: 50.0,
-                          height: 50.0,
-                          child: Image.asset(sky[level]),
-                          alignment: Alignment.centerRight,
-                        ),
-                        const Text(
-                          '0800',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
+                  const SizedBox(height: 30.0),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final api = WeatherApi();
-          List<Weather> weather = await api.getWeather(1, 1, 20220114, '2300');
-          for (final w in weather) {
-            print(w.date);
-            print(w.time);
-            print(w.tmp);
-          }
-        },
+        onPressed: () async {},
         child: const Icon(Icons.add),
       ),
     );

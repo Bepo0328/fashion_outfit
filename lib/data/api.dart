@@ -1,7 +1,8 @@
+import 'dart:convert';
+
+import 'package:collection/collection.dart';
 import 'package:fashion_outfit/data/weather.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:collection/collection.dart';
 
 class WeatherApi {
   final BASE_URL = 'http://apis.data.go.kr';

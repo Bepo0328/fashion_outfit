@@ -1,4 +1,6 @@
+import 'package:fashion_outfit/cloth.dart';
 import 'package:fashion_outfit/data/api.dart';
+import 'package:fashion_outfit/data/preference.dart';
 import 'package:fashion_outfit/data/weather.dart';
 import 'package:fashion_outfit/location.dart';
 import 'package:fashion_outfit/utils.dart';
@@ -38,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
     'assets/img/pants.png',
   ];
   List<Weather> weather = [];
+  List<ClothTmp> tmpCloth = [];
   Weather? current;
   LocationData location =
       LocationData(name: '동작구', x: 0, y: 0, lat: 37.4965953, lng: 126.9442389);
@@ -66,6 +69,9 @@ class _MyHomePageState extends State<MyHomePage> {
     final now = DateTime.now();
     Map<String, int> xy = Utils.latLngToXY(location.lat!, location.lng!);
 
+    final pref = Preference();
+    tmpCloth = await pref.getTmp();
+
     int time = int.parse('${now.hour}00');
     String _time = '';
 
@@ -90,8 +96,8 @@ class _MyHomePageState extends State<MyHomePage> {
     weather = await api.getWeather(
         xy['nx']!, xy['ny']!, Utils.getFormTime(DateTime.now()), _time);
 
-    weather.removeWhere((w) => int.parse(w.time!) < time);
     current = weather.first;
+    clothes = tmpCloth.firstWhere((t) => t.tmp! < current!.tmp!).cloth!;
     level = getLevel(current!);
 
     setState(() {});
@@ -118,6 +124,20 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0.0,
+        actions: [
+          IconButton(
+            onPressed: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (ctx) => const ClothPage()));
+              getWeather();
+            },
+            icon: const Icon(Icons.category),
+          ),
+        ],
+      ),
       backgroundColor: colors[level],
       body: weather.isEmpty
           ? Container(
@@ -127,7 +147,6 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 65.0),
                   Text(
                     '${location.name}',
                     textAlign: TextAlign.center,

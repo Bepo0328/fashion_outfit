@@ -9,7 +9,16 @@ class Weather {
   int? tmp;
   int? reh;
 
-  Weather({this.date, this.time, this.pop, this.pty, this.pcp, this.sky, this.wsd, this.tmp, this.reh});
+  Weather(
+      {this.date,
+      this.time,
+      this.pop,
+      this.pty,
+      this.pcp,
+      this.sky,
+      this.wsd,
+      this.tmp,
+      this.reh});
 
   factory Weather.fromJson(Map<String, dynamic> data) {
     return Weather(
@@ -24,4 +33,14 @@ class Weather {
       reh: int.tryParse(data['REH'] ?? '') ?? 0,
     );
   }
+}
+
+class LocationData {
+  String? name;
+  int? x;
+  int? y;
+  double? lat;
+  double? lng;
+
+  LocationData({this.name, this.x, this.y, this.lat, this.lng});
 }

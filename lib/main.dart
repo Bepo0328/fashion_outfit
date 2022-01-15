@@ -1,5 +1,6 @@
 import 'package:fashion_outfit/data/api.dart';
 import 'package:fashion_outfit/data/weather.dart';
+import 'package:fashion_outfit/location.dart';
 import 'package:fashion_outfit/utils.dart';
 import 'package:flutter/material.dart';
 
@@ -38,6 +39,8 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
   List<Weather> weather = [];
   Weather? current;
+  LocationData location =
+      LocationData(name: '동작구', x: 0, y: 0, lat: 37.4965953, lng: 126.9442389);
   List<String> sky = [
     'assets/img/sky1.png',
     'assets/img/sky2.png',
@@ -60,10 +63,32 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void getWeather() async {
     final api = WeatherApi();
-    weather = await api.getWeather(1, 1, 20220114, '0200');
-
     final now = DateTime.now();
+    Map<String, int> xy = Utils.latLngToXY(location.lat!, location.lng!);
+
     int time = int.parse('${now.hour}00');
+    String _time = '';
+
+    if (time > 2300) {
+      _time = '2300';
+    } else if (time > 2000) {
+      _time = '2000';
+    } else if (time > 1700) {
+      _time = '1700';
+    } else if (time > 1400) {
+      _time = '1400';
+    } else if (time > 1100) {
+      _time = '1100';
+    } else if (time > 800) {
+      _time = '0800';
+    } else if (time > 500) {
+      _time = '0500';
+    } else {
+      _time = '0200';
+    }
+
+    weather = await api.getWeather(
+        xy['nx']!, xy['ny']!, Utils.getFormTime(DateTime.now()), _time);
 
     weather.removeWhere((w) => int.parse(w.time!) < time);
     current = weather.first;
@@ -73,11 +98,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   int getLevel(Weather w) {
-    if(w.sky! > 8) {
+    if (w.sky! > 8) {
       return 3;
-    } else if(w.sky! > 5) {
+    } else if (w.sky! > 5) {
       return 2;
-    } else if(w.sky! > 2) {
+    } else if (w.sky! > 2) {
       return 1;
     } else {
       return 0;
@@ -96,17 +121,17 @@ class _MyHomePageState extends State<MyHomePage> {
       backgroundColor: colors[level],
       body: weather.isEmpty
           ? Container(
-              child: Text('날씨정보를 불러오고 있어요'),
+              child: const Text('날씨정보를 불러오고 있어요'),
             )
           : Container(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 65.0),
-                  const Text(
-                    '종로구',
+                  Text(
+                    '${location.name}',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
@@ -200,7 +225,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: List.generate(weather.length, (idx) {
-
                           final w = weather[idx];
                           int _level = getLevel(w);
 
@@ -211,7 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                 Text(
+                                Text(
                                   '${w.tmp}°C',
                                   style: const TextStyle(
                                     color: Colors.white,
@@ -250,8 +274,13 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {},
-        child: const Icon(Icons.add),
+        onPressed: () async {
+          LocationData data = await Navigator.push(context,
+              MaterialPageRoute(builder: (ctx) => const LocationPage()));
+          location = data;
+          getWeather();
+        },
+        child: const Icon(Icons.location_on),
       ),
     );
   }
